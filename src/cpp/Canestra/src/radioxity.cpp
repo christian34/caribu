@@ -307,12 +307,13 @@ int main(int argc,char **argv){
 #ifdef _HD
 	if(ff_print) {
 	  //Ferr << __FILE__<< " : "<< __LINE__ << '\n' ;
-	  char carlu;
-	  Ferr <<"* ATTENTION - mode HD - Print la matrice a l'ecran\n"
-	    " Le voulez vous reellement \?(o/n)\?"<<'\n' ;
-	  carlu=getchar();
-	  if(carlu=='o' || carlu=='O')
-	    print_hd_mat(TabDiff);
+	  //char carlu;
+	  //Ferr <<"* ATTENTION - mode HD - Print la matrice a l'ecran\n"
+	  //  " Le voulez vous reellement \?(o/n)\?"<<'\n' ;
+	  //carlu=getchar();
+	  //if(carlu=='o' || carlu=='O')
+	    //print_hd_mat(TabDiff);
+	    save_hd_mat(TabDiff); // CF2016: print in a file instead of stderr
 	}
 	// FF -> syst. lineaire 1-Xi*Fij
 	if(verbose>1)  

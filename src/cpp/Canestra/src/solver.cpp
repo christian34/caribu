@@ -8,9 +8,12 @@
       dans le couvert, stoke sur disque hd_mgcr - MC 1996
 
 ***************************************************************************/
-
-#include <iostream> //.h>
+#include <iostream>
+#include <fstream>
 using namespace std;
+
+//#include <iostream> //.h>
+//using namespace std;
 
 #include <cmath>
 #include <cstdio>
@@ -420,6 +423,83 @@ int	i,is, j_idx,j, n,iff,nd,*diag=NULL;//i : indice prim, is indice face
     is++;
   }//for i (ligne)
   fclose(fic);
+  Ferr <<"*  print_hd_mat() : Fin\n";
+}// print_hd_mat()
+
+
+void save_hd_mat(Diffuseur **TabDiff) {
+int	i,is, j_idx,j, n,iff,nd,*diag=NULL;//i : indice prim, is indice face
+  double dff;//pour passer d'un FF en pixel a un FF reel
+  double rho[2],tau[2],po;
+  Tabdyn <double,2>ligne;
+  FILE *fic;
+  ofstream fff("FF.dat", ios::out | ios::trunc);
+  char transp;
+
+  fic=fopen(pcDgName,"rb");
+  fread(&n,sizeof(int),1,fic);
+  ligne.alloue(n,2);
+  fread(&nd,sizeof(int),1,fic);
+  fread(&dff,sizeof(double),1,fic);
+  //chargement des indices de la diago
+  diag=new int[nd+1];//nd= nb prim + 1
+  if(diag==NULL) {
+    Ferr <<" Impossible d allouer diag["  << nd+1<<"]!\n" ;
+    exit(17);
+ }
+  fread(diag,sizeof(int),nd+1,fic);
+  fclose(fic);
+  //Produit fait ligne a ligne
+  fic=fopen(pcNzName,"rb");
+  is=0;
+  for ( i = 0; i < nd; i++ ){
+    //Ferr <<" ligne "<<i<<endl;
+    ligne.maj(0);
+    transp=(diag[i+1]>0)?0:1;
+    //la diago vaut 1
+    ligne(is,0)=1;
+    TabDiff[is]->activ_num(is);
+    rho[0]= -TabDiff[is]->rho();
+    if(transp) {
+      tau[1]=-TabDiff[is]->tau();
+      TabDiff[is]->togle_face();
+      rho[1]= TabDiff[is]->rho();
+      tau[0]=TabDiff[is]->tau();
+      TabDiff[is]->togle_face();
+      ligne(is+1,1)=1;
+    }
+    TabDiff[is]->activ_num(is);
+    for (j_idx = (int) fabs(double(diag[i])); j_idx<fabs(double(diag[i+1])); j_idx++) {
+      fread(&j,sizeof(int),1,fic);
+      //Ferr <<"j = "<<j<<endl;
+      fread(&iff,sizeof(int),1,fic);
+      if(iff>0)
+	po=rho[0];
+      else
+	po=tau[0];
+      ligne(j,0)=iff*dff*po;
+      if(transp) {
+	if(iff>0)
+	  po=tau[1];
+	else
+	  po=rho[1];
+	ligne(j,1)=iff*dff*po;
+      }
+    }
+    //Ferr <<"n = "<<n<<endl;
+    for(j=0;j<n;j++)
+      fff  << ligne(j,0)<<" " ;
+    fff <<"\n" ;
+    if(transp) {
+      for(j=0;j<n;j++)
+	fff  << ligne(j,1)<<" " ;
+      fff <<"\n" ;
+      is++;
+    }
+    is++;
+  }//for i (ligne)
+  fclose(fic);
+  fff.close();
   Ferr <<"*  print_hd_mat() : Fin\n";
 }// print_hd_mat()
 
