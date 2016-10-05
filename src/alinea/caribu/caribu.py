@@ -260,7 +260,7 @@ def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
     return x_out
 
 
-def radiosity(triangles, materials, lights=(default_light,), screen_size=1536):
+def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, form_factor=False):
     """Compute monochromatic illumination of triangles using radiosity method.
 
     Args:
@@ -276,6 +276,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536):
                 By default a normalised zenital light is used.
                 Energy is ligth flux passing throuh a unit area (scene unit) horizontal plane.
         screen_size: (int) buffer size for projection images (pixels)
+        form_factor: (bool) should form factor be returned
 
     Returns:
         (dict of str:property) properties computed:
@@ -286,6 +287,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536):
           - Ei (float): the surfacic density of energy incoming on the triangles
           - Ei_inf (float): the surfacic density of energy incoming on the inferior face of the triangle
           - Ei_sup (float): the surfacic density of energy incoming on the superior face of the triangle
+          - form_factor (array): the form factor matrix (only if form_factor is true)
     """
 
     if len(triangles) <= 1:
@@ -303,10 +305,13 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536):
                   infinitise=False,
                   sphere_diameter=-1,
                   projection_image_size=screen_size,
+                  form_factor_data=form_factor,
                   resdir=None, resfile=None)
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
+    if form_factor:
+        out['form_factor'] = algo.FFdat
 
     return out
 

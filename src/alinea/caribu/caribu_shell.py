@@ -26,6 +26,7 @@ from subprocess import Popen, STDOUT, PIPE
 import tempfile
 import platform
 from path import path
+import numpy
 
 
 def _process(cmd, directory, out):
@@ -110,7 +111,8 @@ class Caribu(object):
                  debug=False,
                  resdir="./Run",
                  resfile=None,
-                 projection_image_size=1536
+                 projection_image_size=1536,
+                 form_factor_data=False
                  ):
         """
         Class fo Nested radiosity illumination on a 3D scene.
@@ -132,6 +134,7 @@ class Caribu(object):
         store nothing otherwise
         projection_image_size : the size (pixel) of the projection image used to compute the first order lighting
         of the scene
+        form_factor_data : (bool)If TRue, form factor are computed and staore in th object if radiosity is called
         """
         if debug:
             print "\n >>>> Caribu.__init__ starts...\n"
@@ -165,6 +168,8 @@ class Caribu(object):
         self.s2v_name = "s2v"
         self.ready = True
         self.img_size = projection_image_size
+        self.form_factor_data = form_factor_data
+        self.FFdat = None # numpy array with FF
         if debug:
             print "\n <<<< Caribu.__init__ ends...\n"
 
@@ -485,7 +490,7 @@ class Caribu(object):
         optname, ext = path(opt.basename()).splitext()
         if self.my_dbg:
             print optname
-        str_pattern = str_direct = str_FF = str_diam = str_env = ""
+        str_pattern = str_direct = str_FF = str_diam = str_env = str_FFdat = ""
 
         if self.infinity:
             str_pattern = " -8 %s " % (self.pattern)
@@ -507,12 +512,19 @@ class Caribu(object):
 
         str_img = "-L %d" % (self.img_size)
 
-        cmd = "%s -M %s -l %s -p %s -A %s %s %s %s %s %s " % (
-            self.canestra_name, self.scene, self.sky, opt, str_pattern, str_direct, str_diam, str_FF, str_env, str_img)
+        if self.form_factor_data:
+            str_FFdat = " -F"
+
+        cmd = "%s -M %s -l %s -p %s -A %s %s %s %s %s %s %s" % (
+            self.canestra_name, self.scene, self.sky, opt, str_pattern, str_direct, str_diam, str_FF, str_env, str_img, str_FFdat)
         if self.my_dbg:
             print(">>> Canestrad(): %s" % (cmd))
         status = _process(cmd, self.tempdir, d / "nr.log")
 
+        if self.form_factor_data:
+            fic = d / 'FF.dat'
+            if fic.exists():
+                self.FFdat = numpy.loadtxt(fic)
         ficres = d / 'Etri.vec0'
         if ficres.exists():
             self.store_result(ficres, str(optname))
