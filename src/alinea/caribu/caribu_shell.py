@@ -112,6 +112,7 @@ class Caribu(object):
                  resdir="./Run",
                  resfile=None,
                  projection_image_size=1536,
+                 projection_disc_resolution=52,
                  form_factor_data=False
                  ):
         """
@@ -168,6 +169,7 @@ class Caribu(object):
         self.s2v_name = "s2v"
         self.ready = True
         self.img_size = projection_image_size
+        self.pdisc_res = projection_disc_resolution
         self.form_factor_data = form_factor_data
         self.FFdat = None # numpy array with FF
         if debug:
@@ -511,12 +513,13 @@ class Caribu(object):
                 str_env = " -e %s.env " % (optname)
 
         str_img = "-L %d" % (self.img_size)
+        str_disc = "-R %d" % (self.pdisc_res)
 
         if self.form_factor_data:
             str_FFdat = " -F"
 
-        cmd = "%s -M %s -l %s -p %s -A %s %s %s %s %s %s %s" % (
-            self.canestra_name, self.scene, self.sky, opt, str_pattern, str_direct, str_diam, str_FF, str_env, str_img, str_FFdat)
+        cmd = "%s -M %s -l %s -p %s -A %s %s %s %s %s %s %s %s" % (
+            self.canestra_name, self.scene, self.sky, opt, str_pattern, str_direct, str_diam, str_FF, str_env, str_img, str_FFdat, str_disc)
         if self.my_dbg:
             print(">>> Canestrad(): %s" % (cmd))
         status = _process(cmd, self.tempdir, d / "nr.log")
