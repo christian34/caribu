@@ -260,7 +260,7 @@ def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
     return x_out
 
 
-def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, form_factor=False):
+def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, disc_resolution=52, form_factor=False):
     """Compute monochromatic illumination of triangles using radiosity method.
 
     Args:
@@ -276,6 +276,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, f
                 By default a normalised zenital light is used.
                 Energy is ligth flux passing throuh a unit area (scene unit) horizontal plane.
         screen_size: (int) buffer size for projection images (pixels)
+        disc_resolution (int) : size (pixel of the projection disc resolution
         form_factor: (bool) should form factor be returned
 
     Returns:
@@ -306,6 +307,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, f
                   sphere_diameter=-1,
                   projection_image_size=screen_size,
                   form_factor_data=form_factor,
+                  projection_disc_resolution=disc_resolution,
                   resdir=None, resfile=None)
     algo.run()
     out = algo.nrj['band0']['data']
@@ -433,7 +435,7 @@ def mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
 
 
 def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
-                      diameter, layers, height, screen_size=1536):
+                      diameter, layers, height, screen_size=1536, disc_resolution=52):
     """Compute multi-chromatic illumination of triangles using mixed-radiosity model.
 
     Args:
@@ -455,6 +457,7 @@ def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
         layers: vertical subdivisions of scene used for approximation of far contribution
         height: upper limit of canopy layers (scene unit)
         screen_size: (int) buffer size for projection images (pixels)
+
 
     Returns:
        a ({band_name: {property_name:property_values} } dict of dict) with  properties:
@@ -486,6 +489,7 @@ def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
                     can_height=height,
                     sphere_diameter=diameter,
                     projection_image_size=screen_size,
+                    projection_disc_resolution=disc_resolution,
                     resdir=None, resfile=None)
     caribu.run()
     out = {k: v['data'] for k, v in caribu.nrj.iteritems()}

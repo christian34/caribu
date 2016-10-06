@@ -434,6 +434,7 @@ int	i,is, j_idx,j, n,iff,nd,*diag=NULL;//i : indice prim, is indice face
   Tabdyn <double,2>ligne;
   FILE *fic;
   ofstream fff("FF.dat", ios::out | ios::trunc);
+  fff.setf(ios::scientific);
   char transp;
 
   fic=fopen(pcDgName,"rb");

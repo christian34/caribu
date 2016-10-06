@@ -12,6 +12,8 @@
 """ This module defines CaribuScene and CaribuSceneError classes."""
 
 import os
+import numpy
+import pandas
 from itertools import groupby, izip, chain
 from math import sqrt
 
@@ -422,7 +424,7 @@ class CaribuScene(object):
 
 
     def run(self, direct=True, infinite=False, d_sphere=0.5, layers=10,
-            height=None, screen_size=1536, split_face=False, simplify=False):
+            height=None, screen_size=1536, disc_resolution=52, split_face=False, simplify=False):
         """ Compute illumination using the appropriate caribu algorithm
 
         Args:
@@ -525,7 +527,8 @@ class CaribuScene(object):
                                                soil_reflectance=albedo,
                                                diameter=d_sphere, layers=layers,
                                                height=height,
-                                               screen_size=screen_size)
+                                               screen_size=screen_size,
+                                               dissc_resolution=disc_resolution)
             elif not direct:  # pure radiosity
                 out = algos['radiosity'](triangles, materials, lights=lights,
                                          screen_size=screen_size)
@@ -590,3 +593,67 @@ class CaribuScene(object):
         self.scene = cscene
 
         return self
+
+
+    def form_factors(self, disc_resolution=52, screen_size=1536, aggregate=False):
+        """ Estimate the form factors for the different primitives"""
+
+        # hack : define a minimalist light (idealy : add an option to caribu to avoid any light computation)
+        lights = [self.default_light]
+
+        if self.scene is not None:
+            triangles = reduce(lambda x, y: x + y, self.scene.values())
+            groups = [[pid] * len(self.scene[pid]) for pid in self.scene]
+            groups = reduce(lambda x, y: x + y, groups)
+            # if self.soil is not None:
+            #     triangles += self.soil
+            #     groups = groups + ['soil'] * len(self.soil)
+
+            materials = [(1,0)] * len(triangles)
+
+            out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size)
+
+
+            # if len(bands) == 1:
+            #     out = {bands[0]: out}
+            # for band in bands:
+            #     output = _convert(out[band], self.conv_unit)
+            #     raw[band] = {}
+            #     aggregated[band] = {}
+            #     for k in results:
+            #         raw[band][k] = _agregate(output[k], groups, list)
+            #         if k is 'area':
+            #             aggregated[band][k] = _agregate(output[k], groups, sum)
+            #         else:
+            #             aggregated[band][k] = _agregate(izip(output[k], output['area']),
+            #                 groups, _wsum)
+            #     if self.soil is not None:
+            #         self.soil_raw[band] = {k: raw[band][k].pop('soil') for k in results}
+            #         self.soil_aggregated[band] = {k: aggregated[band][k].pop('soil') for
+            #                                       k in results}
+            #
+            # if simplify and len(bands) == 1:
+            #     raw = raw[bands[0]]
+            #     aggregated = aggregated[bands[0]]
+
+
+        # aggregate faces : sum even and non even column, summmed even and non even lines
+        # diagonal is 2 in this case
+            ff = out['form_factor']
+            sumed = ff[::2, ::2] + ff[::2, 1::2] + ff[1::2, ::2] + ff[1::2, 1::2]
+            ff = sumed - numpy.eye(sumed.shape[0])
+
+
+            if aggregate:  # Quit experimental
+                upper = numpy.triu(ff, 1) # keep only above diagonal
+                df = pandas.DataFrame(upper)
+                def _agglines(mat):
+                    # should be area_waighted means
+                    return mat.groupby(groups,axis=1).agg(numpy.mean).mean(axis=0)
+                up = df.groupby(groups, axis=0).apply(_agglines)
+                return up + up.transpose() + numpy.eye(up.shape[0])
+            else:
+                return ff, groups
+
+
+
