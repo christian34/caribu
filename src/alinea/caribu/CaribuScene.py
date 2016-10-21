@@ -594,12 +594,30 @@ class CaribuScene(object):
 
         return self
 
+    def form_factors(self, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False):
+        """Estimate the form factors for the different primitives in a given neighbourhood
 
-    def form_factors(self, disc_resolution=52, screen_size=1536, aggregate=False):
-        """ Estimate the form factors for the different primitives"""
+        Args:
+            d_sphere: diametter of the sphere defining the neighbourhood. If None (default), neighboorhood is infinite
+            disc_resolution: the diameter (pixels) of the projection disc used for visibility computation.
+            Smallest visible object (1 pixel) is obtained for  8 / disc_resolution**2 sr
+            screen_size: size (pixel) of the projection screen
+            aggregate:
+
+        Returns:
+
+        """
 
         # hack : define a minimalist light (idealy : add an option to caribu to avoid any light computation)
         lights = [self.default_light]
+
+        if d_sphere is not None:
+            if self.pattern is None:
+                raise ValueError(
+                    'Nested Form factor computation needs a pattern to be defined')
+            d_sphere /= self.conv_unit
+            if d_sphere <= 0:
+                d_sphere = None
 
         if self.scene is not None:
             triangles = reduce(lambda x, y: x + y, self.scene.values())
@@ -611,8 +629,18 @@ class CaribuScene(object):
 
             materials = [(1,0)] * len(triangles)
 
-            out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size)
-
+            if d_sphere is None:
+                out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size)
+            else:
+                z = (pt[2] for tri in triangles for pt in tri)
+                height = 1.01 * max(z)
+                out = mixed_radiosity(triangles, materials, lights=lights,
+                                      domain=self.pattern,
+                                      soil_reflectance=0.1,
+                                      diameter=d_sphere, layers=1, height=height,
+                                      form_factor=True,
+                                      disc_resolution=disc_resolution,
+                                      screen_size=screen_size)
 
             # if len(bands) == 1:
             #     out = {bands[0]: out}

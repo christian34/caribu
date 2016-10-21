@@ -255,10 +255,11 @@ if run_test:
 
         return out, agg
 
-    def test_form_factors(d=1e-5, disc_resolution=52, screen_size=1536, aggregate=False):
+    def test_form_factors(d=1e-5, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False):
         pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
         pts_2 = [(0, 0, d), (1, 0, d), (0, 1, d)]
         pts_3 = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
         pyscene = {'lower': [pts_1, pts_3], 'upper': [pts_2]}
-        cscene = CaribuScene(pyscene)
-        return cscene.form_factors(disc_resolution=disc_resolution, screen_size=screen_size, aggregate=aggregate)
+        domain = (0, 0, 1, 1)
+        cscene = CaribuScene(pyscene, pattern=domain)
+        return cscene.form_factors(d_sphere=d_sphere, disc_resolution=disc_resolution, screen_size=screen_size, aggregate=aggregate)
