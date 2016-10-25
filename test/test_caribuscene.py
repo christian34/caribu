@@ -259,7 +259,8 @@ if run_test:
         pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
         pts_2 = [(0, 0, d), (1, 0, d), (0, 1, d)]
         pts_3 = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
-        pyscene = {'lower': [pts_1, pts_3], 'upper': [pts_2]}
+        pts_4 = [(1, 0, d), (1, 1, d), (0, 1, d)]
+        pyscene = {'lower_prim': [pts_1, pts_3], 'upper_prim': [pts_2, pts_4]}
         domain = (0, 0, 1, 1)
         cscene = CaribuScene(pyscene, pattern=domain)
         return cscene.form_factors(d_sphere=d_sphere, disc_resolution=disc_resolution, screen_size=screen_size, aggregate=aggregate)
