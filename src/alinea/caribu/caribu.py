@@ -152,7 +152,7 @@ def get_incident(eabs, materials):
 
 
 def raycasting(triangles, materials, lights=(default_light,), domain=None,
-               screen_size=1536):
+               screen_size=1536, debug=False):
     """Compute monochrome illumination of triangles using caribu raycasting mode.
 
     Args:
@@ -171,6 +171,7 @@ def raycasting(triangles, materials, lights=(default_light,), domain=None,
                  (xmin, ymin, xmax, ymax) scene is not bounded along z axis
                  if None (default), scene is not repeated
         screen_size: (int) buffer size for projection images (pixels)
+        debug: (bool) Whether Caribu should be called in debug mode
 
     Returns:
         (dict of str:property) properties computed:
@@ -201,7 +202,7 @@ def raycasting(triangles, materials, lights=(default_light,), domain=None,
                   direct=True,
                   infinitise=infinite,
                   projection_image_size=screen_size,
-                  resdir=None, resfile=None)
+                  resdir=None, resfile=None, debug=debug)
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
@@ -210,7 +211,7 @@ def raycasting(triangles, materials, lights=(default_light,), domain=None,
 
 
 def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
-                 screen_size=1536):
+                 screen_size=1536, debug=False):
     """Compute monochrome illumination of triangles using caribu raycasting mode.
 
     Args:
@@ -230,6 +231,7 @@ def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
                  (xmin, ymin, xmax, ymax) scene is not bounded along z axis
                  if None (default), scene is not repeated
         screen_size: (int) buffer size for projection images (pixels)
+        debug: (bool) Whether Caribu should be called in debug mode
 
     Returns:
         a ({band_name: {property_name:property_values} } dict of dict) with  properties:
@@ -245,7 +247,7 @@ def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
     x_out = {}
     band, materials = x_materials.popitem()
     out = raycasting(triangles, materials, lights=lights, domain=domain,
-                     screen_size=screen_size)
+                     screen_size=screen_size, debug=debug)
     x_out[band] = out
 
     for band in x_materials:
@@ -260,7 +262,7 @@ def x_raycasting(triangles, x_materials, lights=(default_light,), domain=None,
     return x_out
 
 
-def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, disc_resolution=52, form_factor=False):
+def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, disc_resolution=52, form_factor=False, debug=False):
     """Compute monochromatic illumination of triangles using radiosity method.
 
     Args:
@@ -278,6 +280,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, d
         screen_size: (int) buffer size for projection images (pixels)
         disc_resolution (int) : size (pixel of the projection disc resolution
         form_factor: (bool) should form factor be returned
+        debug: (bool) Whether Caribu should be called in debug mode
 
     Returns:
         (dict of str:property) properties computed:
@@ -308,7 +311,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, d
                   projection_image_size=screen_size,
                   form_factor_data=form_factor,
                   projection_disc_resolution=disc_resolution,
-                  resdir=None, resfile=None)
+                  resdir=None, resfile=None, debug=debug)
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
@@ -318,7 +321,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536, d
     return out
 
 
-def x_radiosity(triangles, x_materials, lights=(default_light,), screen_size=1536):
+def x_radiosity(triangles, x_materials, lights=(default_light,), screen_size=1536, debug=False):
     """Compute multi-chromatic illumination of triangles using radiosity method.
 
     Args:
@@ -335,6 +338,7 @@ def x_radiosity(triangles, x_materials, lights=(default_light,), screen_size=153
                 By default a normalised zenital light is used.
                 Energy is ligth flux passing throuh a unit area (scene unit) horizontal plane.
         screen_size: (int) buffer size for projection images (pixels)
+        debug: (bool) Whether Caribu should be called in debug mode
 
     Returns:
         a {band_name: {property_name:property_values} } dict of dict) with  properties:
@@ -364,7 +368,7 @@ def x_radiosity(triangles, x_materials, lights=(default_light,), screen_size=153
                     infinitise=False,
                     sphere_diameter=-1,
                     projection_image_size=screen_size,
-                    resdir=None, resfile=None)
+                    resdir=None, resfile=None, debug=debug)
     caribu.run()
     out = {k: v['data'] for k, v in caribu.nrj.iteritems()}
     for band in out:
@@ -442,7 +446,7 @@ def mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
 
 
 def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
-                      diameter, layers, height, screen_size=1536, disc_resolution=52):
+                      diameter, layers, height, screen_size=1536, disc_resolution=52, debug=False):
     """Compute multi-chromatic illumination of triangles using mixed-radiosity model.
 
     Args:
@@ -464,6 +468,7 @@ def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
         layers: vertical subdivisions of scene used for approximation of far contribution
         height: upper limit of canopy layers (scene unit)
         screen_size: (int) buffer size for projection images (pixels)
+        debug: (bool) Whether Caribu should be called in debug mode
 
 
     Returns:
@@ -497,7 +502,7 @@ def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
                     sphere_diameter=diameter,
                     projection_image_size=screen_size,
                     projection_disc_resolution=disc_resolution,
-                    resdir=None, resfile=None)
+                    resdir=None, resfile=None, debug=debug)
     caribu.run()
     out = {k: v['data'] for k, v in caribu.nrj.iteritems()}
     for band in out:
