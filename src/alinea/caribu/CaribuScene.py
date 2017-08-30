@@ -326,7 +326,7 @@ class CaribuScene(object):
                         color_property[k].append(colors.pop(0))
                 else:
                     color_property[k] = [colors.pop(0)] * len(self.scene[k])
-        scene = generate_scene(self.scene, color_property)
+        scene, _ = generate_scene(self.scene, color_property)
         if display:
             Viewer.display(scene)
         return scene, values

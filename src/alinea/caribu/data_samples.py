@@ -27,9 +27,11 @@ def data_path(filename):
 def maize_pgl_scene():
     fn = data_path('f331s1_100plantes.can')
     can = read_can(fn)
-    opt, opak, plant, elt, leaf = decode_label(can.keys())
+    label = can.keys()
+    opt, opak, plant, elt, leaf = decode_label(label)
+    scene, cmap = generate_scene(can)
+    pid = [cmap[lab] for lab in label]
     mapping = pandas.DataFrame(
-        {'pid': can.keys(), 'plant': plant, 'metamer': leaf, 'organ': elt}).loc[
-              :, ('pid', 'plant', 'metamer', 'organ')]
-    return generate_scene(can), mapping.sort_values(
-        ['plant', 'metamer', 'organ'])
+        {'pid': pid, 'label': label, 'plant': plant, 'metamer': leaf,
+         'organ': elt}).loc[:, ('pid', 'label', 'plant', 'metamer', 'organ')]
+    return scene, mapping.sort_values(['plant', 'metamer', 'organ'])

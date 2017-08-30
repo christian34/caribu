@@ -89,7 +89,9 @@ def generate_scene(triangle_scene, colors=None, soil=None, soil_colors=None):
     """
     plant_color = (0, 180, 0)
     soil_color = (170, 85, 0)
-    scene = pgl.Scene()
+    scene = []
+    sid = []
+    label = []
 
     if colors is None:
         colors = {k: [plant_color] * len(triangle_scene[k]) for k in triangle_scene}
@@ -97,11 +99,10 @@ def generate_scene(triangle_scene, colors=None, soil=None, soil_colors=None):
         if len(triangle_scene) != len(colors):
             raise ValueError('length of triangle_scene and of color should match')
 
-    for k, triangles in triangle_scene.iteritems():
+    for ik, (k, triangles) in enumerate(triangle_scene.iteritems()):
         shape = pgl.TriangleSet([], [])
         shape.colorList = []
         shape.colorPerVertex = False
-        shape.id = k
         for i, triangle in enumerate(triangles):
             shape.pointList.append(pgl.Vector3(triangle[0]))
             shape.pointList.append(pgl.Vector3(triangle[1]))
@@ -110,16 +111,16 @@ def generate_scene(triangle_scene, colors=None, soil=None, soil_colors=None):
             r, g, b = colors[k][i]
             shape.colorList.append(pgl.Color4(r, g, b, 0))
 
-        scene += shape
+        sid.append(ik)
+        label.append(k)
+        scene.append(shape)
 
     if soil is not None:
         if soil_colors is None:
             soil_colors = [soil_color] * len(soil)
-        sid = max([sh.id for sh in scene])
         shape = pgl.TriangleSet([], [])
         shape.colorList = []
         shape.colorPerVertex = False
-        shape.id = sid
         for i, triangle in enumerate(soil):
             shape.pointList.append(pgl.Vector3(triangle[0]))
             shape.pointList.append(pgl.Vector3(triangle[1]))
@@ -128,7 +129,14 @@ def generate_scene(triangle_scene, colors=None, soil=None, soil_colors=None):
             r, g, b = soil_colors[i]
             shape.colorList.append(pgl.Color4(r, g, b, 0))
 
-        scene += shape
+        sid.append(max(sid) + 1)
+        label.append('soil')
+        scene.append(shape)
 
+    scene = pgl.Scene(scene)
+    mapping = dict()
+    for sh, id, lab in zip(scene, sid, label):
+        sh.id = id
+        mapping[lab] = id
 
-    return scene
+    return scene, mapping

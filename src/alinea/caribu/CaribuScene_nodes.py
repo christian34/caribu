@@ -136,7 +136,8 @@ periodise.__doc__ =cdoc.runPeriodise.__doc__
 
    
 def generate_scene_node(caribuscene, colors):
-    return generate_scene(caribuscene.scene, colors)
+    scene, _ = generate_scene(caribuscene.scene, colors)
+    return scene
 
 
 def PARaggregators(aggregated_output):
