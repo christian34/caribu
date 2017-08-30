@@ -166,7 +166,7 @@ def decode_label(label):
     if not isinstance(label, list):
         label = [label]
 
-    properties = [(lab.optical_id, lab.transparency, lab.plant_id, lab.elt_id) for lab in
+    properties = [(lab.optical_id, lab.transparency, lab.plant_id, lab.elt_id, lab.leaf_id) for lab in
                   (Label(labstring) for labstring in label)]
 
     return zip(*properties)
