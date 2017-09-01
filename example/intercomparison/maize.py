@@ -9,7 +9,7 @@ from alinea.caribu.CaribuScene import CaribuScene
 from alinea.caribu.light import light_sources
 
 
-scene, mapping = maize_pgl_scene()
+scene, mapping = maize_pgl_scene(no_stem=True)
 sources = sky_sources()
 light = light_sources(*sources)
 cs = CaribuScene(scene, light=light)

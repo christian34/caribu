@@ -24,11 +24,16 @@ def data_path(filename):
     return d / 'data' / fn
 
 
-def maize_pgl_scene():
+def maize_pgl_scene(no_stem=False):
     fn = data_path('f331s1_100plantes.can')
     can = read_can(fn)
     label = can.keys()
     opt, opak, plant, elt, leaf = decode_label(label)
+    if no_stem:
+        leaves = [lab for lab,e in zip(label, elt) if e == 2]
+        can = {k: v for k,v in can.iteritems() if k in leaves}
+        label = can.keys()
+        opt, opak, plant, elt, leaf = decode_label(label)
     scene, cmap = generate_scene(can)
     pid = [cmap[lab] for lab in label]
     mapping = pandas.DataFrame(
