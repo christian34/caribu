@@ -594,7 +594,7 @@ class CaribuScene(object):
 
         return self
 
-    def form_factors(self, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False):
+    def form_factors(self, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False, debug=False):
         """Estimate the form factors for the different primitives in a given neighbourhood
 
         Args:
@@ -630,7 +630,7 @@ class CaribuScene(object):
             materials = [(1,0)] * len(triangles)
 
             if d_sphere is None:
-                out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size)
+                out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size, debug=debug)
             else:
                 z = (pt[2] for tri in triangles for pt in tri)
                 height = 1.01 * max(z)
@@ -640,7 +640,7 @@ class CaribuScene(object):
                                       diameter=d_sphere, layers=1, height=height,
                                       form_factor=True,
                                       disc_resolution=disc_resolution,
-                                      screen_size=screen_size)
+                                      screen_size=screen_size, debug=debug)
 
             # if len(bands) == 1:
             #     out = {bands[0]: out}

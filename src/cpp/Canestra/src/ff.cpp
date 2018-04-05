@@ -195,28 +195,37 @@ static bool init_MPE(int &i,int&j) {
   del[0]=(Pp[i][1]*Pp[j][2])-(Pp[j][1]*Pp[i][2]);
   del[1]=-(Pp[j][0]*Pp[i][2])+(Pp[i][0]*Pp[j][2]);
   del[2]=(Pp[i][0]*Pp[j][1])-(Pp[j][0]*Pp[i][1]);
-  //printf("init_MPE(%d,%d) : ",i,j);
-  if(del[0]!=0.0) {
+  if (fabs(del[0]) < 1e-6) {
+  del[0] = 0;
+  }
+    if (fabs(del[1]) < 1e-6) {
+  del[1] = 0;
+  }
+    if (fabs(del[2]) < 1e-6) {
+  del[2] = 0;
+  }
+  printf("init_MPE(%d,%d) : (del:%lf %lf %lf)",i,j, del[0], del[1], del[2]);
+  if(fabs(del[0]) > 1e-6) {
     mpei[0]=1;
     mpei[1]=-del[1]/del[0];
     mpei[2]=del[2]/del[0];
-    //printf("\n Cas A=1\n");
+    printf("\n Cas A=1\n");
     return false;
   }
   //cas ou B!=0
-  if(del[1]!=0.0) {
+  if(fabs(del[1]) > 1e-6) {
     mpei[1]=1;
     mpei[0]=-del[0]/del[1];
     mpei[2]=-del[2]/del[1];
-    //printf("\n Cas B=1\n"); 
+    printf("\n Cas B=1\n");
     return false;
   }
   //cas ou C!=0
-  if(del[2]!=0.0) {
+  if(fabs(del[2])> 1e-6) {
     mpei[2]=1;
     mpei[0]=del[0]/del[2];
     mpei[1]=-del[1]/del[2];
-    //printf("\n Cas C=1\n");
+    printf("\n Cas C=1\n");
   return false;
   }
   //cas a la c..
@@ -394,14 +403,14 @@ void init_proj(Diffuseur * diffR ) {
   //creation du repere local (u,v,w)
   //diffR->togle_face();
   O=diffR->centre();
-  //printf("FF:init_proj() Oz=%lf\n",O[2]);
+  printf("FF:init_proj() Oz=%lf\n",O[2]);
   u.formation_vecteur(diffR->primi().sommets(1),diffR->primi().sommets(0));
   u.normalise();
   w=diffR->normal();
   v=w.prod_vectoriel(u);
   //debug Bfar
-  //printf("FF:init_proj() (u,v,w) = \n");
-  //u.show(); v.show();w.show();
+  printf("FF:init_proj() (u,v,w) = \n");
+  u.show(); v.show();w.show();
   receiver=diffR;
   //init des Buffers
   DbuffS.maj(NULL);
@@ -419,7 +428,7 @@ void proj_ortho(Diffuseur* E,reel *inc) {
   int i,j,i1,i2,jm,j0;
   signed char pasglop=0,in=0,ins=0,nbd,face,iz0[2]={-1,-1},izm[2]={-1,-1},izp[2]={-1,-1},t;
   //evite les calcul de l'opaque vu par derriee (tige)
-  //printf(" Ok guy, I'm in proj_ortho()\n");
+  printf(" Ok guy, I'm in proj_ortho()\n");
 
   //Chrono
   time(&dTproj);
@@ -434,13 +443,13 @@ void proj_ortho(Diffuseur* E,reel *inc) {
   }
   Point B;
   //projette E sur R
-  //printf("E = %ld\n",E->num());
+  printf("E = %ld\n",E->num());
   for(i=0;i<3;i++) {
     P=E->primi().sommets(i);
     P[0]+=inc[0];
     P[1]+=inc[1];
     glob2loc(P,Pp[i]);
-    // cout<<" Pp["<<i<<"] :";Pp[i].show();
+    cout<<" Pp["<<i<<"] :";Pp[i].show();
     if(Pp[i][2]>1e-6) {
       pasglop++;
       if(izp[0]==-1)
@@ -463,8 +472,8 @@ void proj_ortho(Diffuseur* E,reel *inc) {
 	else
 	  iz0[1]=i;
       }
-     }//for i sommet
-  /*  B[i]=(Pp[0][i]+Pp[1][i]+Pp[2][i])/3.0;
+    }//for i sommet
+/*    B[i]=(Pp[0][i]+Pp[1][i]+Pp[2][i])/3.0;
       }//for i sommet
       loc2sph(B,B);
       B.show();
@@ -543,27 +552,27 @@ void proj_ortho(Diffuseur* E,reel *inc) {
       if(Pp[i][2]<1e-6) 
 	Pp[i][2]+=0.0000001;
     //Remplissage de la mat. du plan du triangle
-    //printf("Pp[%d] : ",i); 
+    printf("Pp[%d] : ",i);
     for(j=0;j<3;j++) {
-      //printf("%lf  ",Pp[i][j]);
+      printf("%lf  ",Pp[i][j]);
       M[i][j]=Pp[i][j];
     }
-    //printf("\n");
+    printf("\n");
       b[i]=-1;//b contiendra les coeff de l'equation du plan du triangle E
-      //printf("PROJ_ORHTO() : Pp[%d] = %f, %f, %f\n",i,Pp[i][0],Pp[i][1],Pp[i][2]);
+      printf("PROJ_ORHTO() : Pp[%d] = %f, %f, %f\n",i,Pp[i][0],Pp[i][1],Pp[i][2]);
     }//for i
 
-     //printf("PROJ_ORHTO() : diffE no. %d : sens = %d\n",E->num(),izm[0]);
+     printf("PROJ_ORHTO() : diffE no. %d : sens = %d\n",E->num(),izm[0]);
     if(((izm[0]==0) ||(transp && (izm[0]==1))) && solve3(M,b)) {
       //cas ou E n'intersecte pas le plan de projection
       //projection ortho (C. Renaud- LIL)
       //Calcul du centre du triangle P
       centre(P,Pp[0],Pp[1],Pp[2]);
-      //printf("PROJ_ORHTO() : P = %f, %f, %f\n",P[0],P[1],P[2]);
+      printf("PROJ_ORHTO() : P = %f, %f, %f\n",P[0],P[1],P[2]);
       loc2sph(P,P);
       //Warning this is a bug ! :extrem=sqrtab(sph2img(P[0]),sph2img(P[1]));
       extrem=Msqrt(1-P[0]*P[0]-P[1]*P[1]);
-      //for(i=0;i<3;i++) cout<<"b["<<i<<"]="<<b[i]<<", ";
+      for(i=0;i<3;i++) cout<<"b["<<i<<"]="<<b[i]<<", ";
       for(i=0;i<3;i++) {//loop arete
 	mpei=mpe[i];
 	j=(i+1)%3;
@@ -577,9 +586,9 @@ void proj_ortho(Diffuseur* E,reel *inc) {
 	  return;
 	}
 	loc2sph(Pp[i],Ps[i]);
-	//printf("coord sph : Ps[%d] = %f, %f, %f\n",i,Ps[i][0],Ps[i][1],Ps[i][2]);//valeur de MPE au centre du TRiangle
+	printf("coord sph : Ps[%d] = %f, %f, %f\n",i,Ps[i][0],Ps[i][1],Ps[i][2]);//valeur de MPE au centre du TRiangle
 	mpei[3]=mpei[0]*P[0]+mpei[1]*P[1]+mpei[2]*extrem;
-	//printf("MPE[%d][3] = %lf\n",i, mpei[3]);
+	printf("MPE[%d][3] = %lf\n",i, mpei[3]);
       }//lopp arete
       //calcul du rectangle englobant
       // 0 left - 1 right - 2 down - 3 up (codage des RE)
@@ -627,8 +636,8 @@ void proj_ortho(Diffuseur* E,reel *inc) {
 	  kk=(j+1)%2;
 	  maxP=max(Ps[i1][kk],Ps[i2][kk]);
 	  minP=min(Ps[i1][kk],Ps[i2][kk]);
-	  //printf("\nABSI :  min=%f, extr=%lf, max=%f\n",Ps[i1][j],pos_extr,Ps[i2][j]);
-	  //printf("ORDO :  min=%lf, extr=%lf, max=%lf\n",Ps[i1][kk],extrem,Ps[i2][kk]);
+	  printf("\nABSI :  min=%f, extr=%lf, max=%f\n",Ps[i1][j],pos_extr,Ps[i2][j]);
+	  printf("ORDO :  min=%lf, extr=%lf, max=%lf\n",Ps[i1][kk],extrem,Ps[i2][kk]);
 	  
 	  if((Ps[i1][j]>0)^(Ps[i2][j]>0) == 1) {
 	    double a,ya;
@@ -662,50 +671,50 @@ void proj_ortho(Diffuseur* E,reel *inc) {
       j0=sph2img(RE[2]); j0=(j0==0)? 0 : j0-1; 
       jm=sph2img(RE[3]); jm=(jm<NB-1)? jm+1 : jm; 
 
-      //printf("E.Gsph: %lf   %lf   %lf \n",P[0],P[1],P[2]);
-      //printf("REsph : %lf ; %lf - %lf ; %lf \n",RE[0],RE[1],RE[2],RE[3]) ;
-      //printf("REimg : %d ; %d - %d ; %d \n",i1,i2,j0,jm);
+      printf("E.Gsph: %lf   %lf   %lf \n",P[0],P[1],P[2]);
+      printf("REsph : %lf ; %lf - %lf ; %lf \n",RE[0],RE[1],RE[2],RE[3]) ;
+      printf("REimg : %d ; %d - %d ; %d \n",i1,i2,j0,jm);
       for(i=i1;i<=i2;i++) {
-	x=img2sph(i);
-	for(j=j0;j<=jm;j++) {//loop sur les proxels du RE
-	  if(sqrtab(i,j)!=-1) {//dans le cercle
-	    y=img2sph(j);
-	    //debug pour voir le carre englobant : DbuffS(i,j)=receiver;
-	    // MC debug 151203 in=3;
-	    int in=3;
-	    extrem=sqrtab(i,j);//extrem var. tempo pour economiser les appel a sqrtab()
-	    // Ferr << __FILE__ " : "<< __LINE__ << '\n' ;
-	    in -= (x + mpe_01*y + mpe_02*extrem > 0) ^ (mpe_03 > 0); //eq 2.5
-	    //Ferr << __FILE__ " : "<< __LINE__ <<"; "<<(int)(x + mpe_11*y + mpe_12*extrem > 0)<<" "<<(int)(mpe_13 > 0)<<" "<<in<< '\n' ;	  	   
-	    in -= (x + mpe_11*y + mpe_12*extrem > 0) ^ (mpe_13 > 0);//mpe_i0=1
-	    //Ferr << __FILE__ " : "<< __LINE__ << '\n' ;	  
-	    in -= (x + mpe_21*y + mpe_22*extrem > 0) ^ (mpe_23 > 0);
-	    //Ferr << __FILE__ " : "<< __LINE__ << '\n' ;
-	    if(in==3){//dans le mille!	      
-	      //calcul de la distance rho
-	      extrem=b[0]*x+b[1]*y+b[2]*sqrtab(i,j);
-	      //printf("d2(%d,%d) = %g, neginvR=%g\n",i,j,extrem,neginvR );
-	      //maj des buffer
-	      if(!(!acv && (extrem > neginvR) )){ //cf. PhD Renaud p.41
-		if(izm[0]==0){
-		  //printf("rho(%d,%d)=%lf\n",i,j,extrem);
-		  if(extrem<ZbuffS(i,j)) {
-		    //cas reflechi
-		    ZbuffS(i,j)=extrem;
-		    DbuffS(i,j)=E;
-		  }
-		}
-		else 
-		  if(extrem<ZbuffI(i,j)) {
-		    //cas transmis
-		    ZbuffI(i,j)=extrem;
-		    DbuffI(i,j)=E;
-		    //printf("ZBUFF(%d,%d) = %lf\n",i,j,ZbuffS(i,j));
-		}
-	      }// if a cheval (traitt special si acv==false)
-	    }//dans le mille
-	  }//dans le cercle 
-	}//fin loop RE j
+	    x=img2sph(i);
+	    for(j=j0;j<=jm;j++) {//loop sur les proxels du RE
+	        if(sqrtab(i,j)!=-1) {//dans le cercle
+	            y=img2sph(j);
+	            //debug pour voir le carre englobant : DbuffS(i,j)=receiver;
+	            // MC debug 151203 in=3;
+	            int in=3;
+	            extrem=sqrtab(i,j);//extrem var. tempo pour economiser les appel a sqrtab()
+	            // Ferr << __FILE__ " : "<< __LINE__ << '\n' ;
+	            in -= (x     + mpe_01*y + mpe_02*extrem > 0) ^ (mpe_03 > 0); //eq 2.5
+	            //Ferr << __FILE__ " : "<< __LINE__ <<"; "<<(int)(x + mpe_11*y + mpe_12*extrem > 0)<<" "<<(int)(mpe_13 > 0)<<" "<<in<< '\n' ;
+	            in -= (x + mpe_11*y + mpe_12*extrem > 0) ^ (mpe_13 > 0);//mpe_i0=1
+	            //Ferr << __FILE__ " : "<< __LINE__ << '\n' ;
+	            in -= (x + mpe_21*y + mpe_22*extrem > 0) ^ (mpe_23 > 0);
+	            //Ferr << __FILE__ " : "<< __LINE__ << '\n' ;
+	            if(in==3){//dans le mille!
+	                //calcul de la distance rho
+	                extrem=b[0]*x+b[1]*y+b[2]*sqrtab(i,j);
+	                printf("d2(%d,%d) = %g, neginvR=%g\n",i,j,extrem,neginvR );
+	                //maj des buffer
+	                if(!(!acv && (extrem > neginvR) )){ //cf. PhD Renaud p.41
+		                if(izm[0]==0){
+		                    printf("rho(%d,%d)=%lf\n",i,j,extrem);
+		                    if(extrem<ZbuffS(i,j)) {
+		                        //cas reflechi
+		                        ZbuffS(i,j)=extrem;
+		                        DbuffS(i,j)=E;
+		                    }
+		                }
+		                else
+		                if(extrem<ZbuffI(i,j)) {
+		                    //cas transmis
+		                    ZbuffI(i,j)=extrem;
+		                    DbuffI(i,j)=E;
+		                    //printf("ZBUFF(%d,%d) = %lf\n",i,j,ZbuffS(i,j));
+		                }
+	                }// if a cheval (traitt special si acv==false)
+	            }//dans le mille
+	        }//dans le cercle
+	    }//fin loop RE j
       }//fin loop RE i
     }//if glop
   }//for t (subdiv triangle)
@@ -768,7 +777,7 @@ void NFF(SPMAT*FF,int &i_sup,int &i_inf,VEC **Cfar){
     for(j=0;j<NB;j++) {
       if(sqrtab(i,j)>=0){//cas ou je suis dans le disque de projection
 	E=DbuffS(i,j);
-	//printf("==> NFF(%d,%d) = %d : ",i,j,(E==NULL)?0:1);
+	//printf("==> NFF(%d,%d) = %d : \n",i,j,(E==NULL)?0:1);
 	if(E!=NULL) {
 	  n=E->num();
 	  //face sup en reflectance

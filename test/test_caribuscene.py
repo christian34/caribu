@@ -10,6 +10,37 @@ if run_test:
     import openalea.plantgl.all as pgl
     from alinea.caribu.CaribuScene import CaribuScene
     from alinea.caribu.data_samples import data_path
+    import math
+    import numpy
+
+
+    def norm(vector):
+        """ norm of a vector
+        """
+        x, y, z = vector
+        return math.sqrt(x ** 2 + y ** 2 + z ** 2)
+
+    def rotation_matrix(axis, theta):
+        """
+        Return the rotation matrix associated with counterclockwise rotation about
+        the given axis by theta radians.
+        """
+        axis = numpy.asarray(axis)
+        axis = axis / norm(axis)
+        a = math.cos(theta / 2.0)
+        b, c, d = -axis * math.sin(theta / 2.0)
+        aa, bb, cc, dd = a * a, b * b, c * c, d * d
+        bc, ad, ac, ab, bd, cd = b * c, a * d, a * c, a * b, b * d, c * d
+        return numpy.array([[aa + bb - cc - dd, 2 * (bc + ad), 2 * (bd - ac)],
+                            [2 * (bc - ad), aa + cc - bb - dd, 2 * (cd + ab)],
+                            [2 * (bd + ac), 2 * (cd - ab), aa + dd - bb - cc]])
+
+
+    def rotate(points, rotation_matrix):
+        return [tuple(numpy.dot(rotation_matrix, p).tolist()) for p in points]
+
+
+
 
 
     def test_instantiation_from_files():
@@ -255,11 +286,16 @@ if run_test:
 
         return out, agg
 
-    def test_form_factors(d=1e-5, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False):
+    def test_form_factors(rot=0, d=1e-5, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False, debug=False):
         pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
         pts_2 = [(0, 0, d), (1, 0, d), (0, 1, d)]
         pts_3 = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
-        pyscene = {'lower': [pts_1, pts_3], 'upper': [pts_2]}
+        roty = rotation_matrix((0,1,0),numpy.radians(rot))
+        pts_1 = rotate(pts_1, roty)
+        pts_2 = rotate(pts_2, roty)
+        pts_3 = rotate(pts_3, roty)
+        pyscene = {'lower': [pts_1, pts_3]}
+        #, 'upper': [pts_2]}
         domain = (0, 0, 1, 1)
         cscene = CaribuScene(pyscene, pattern=domain)
-        return cscene.form_factors(d_sphere=d_sphere, disc_resolution=disc_resolution, screen_size=screen_size, aggregate=aggregate)
+        return cscene.form_factors(d_sphere=d_sphere, disc_resolution=disc_resolution, screen_size=screen_size, aggregate=aggregate, debug=debug)
