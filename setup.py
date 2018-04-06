@@ -54,17 +54,7 @@ setup_kwds = dict(
 
     include_package_data=True,
     package_data={'caribu_data': data_files},
-    install_requires=[
-        "path.py",
-        ],
-    tests_require=[
-        "coverage",
-        "flake8",
-        "mock",
-        "nose",
-        "sphinx",
-        "coveralls",
-        ],
+    install_requires=[],
     entry_points={},
     keywords='',
     test_suite='nose.collector',
