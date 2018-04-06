@@ -20,19 +20,19 @@ requirements:
     - setuptools
     - openalea.deploy
     - openalea.sconsx
-    - m2w64-toolchain  # [win]
+    - mingwpy  # [win]
 
   run:
     - python
     - openalea.deploy
     - path.py
     - numpy
-    - m2w64-gcc-libs  # [win]
+    - mingwpy  # [win]
 
 test:
   requires:
     - nose
-    - openalea.plantgl
+#    - openalea.plantgl
     - openalea.mtg
   imports:
     - alinea.caribu
