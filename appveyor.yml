@@ -1,5 +1,5 @@
 platform:
-  - x86
+#  - x86
   - x64
 
 environment:
@@ -12,7 +12,7 @@ install:
   - git clone https://github.com/openalea/appveyor-ci.git appveyor-ci
   - cd appveyor-ci
   - call install.bat
-  - conda config --append channels conda-forge
+  - conda config --append channels msys2
 
 before_build:
   - call before_build.bat
