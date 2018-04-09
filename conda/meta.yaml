@@ -20,14 +20,14 @@ requirements:
     - setuptools
     - openalea.deploy
     - openalea.sconsx
-    - mingwpy  # [win]
+    - m2w64-toolchain  # [win]
 
   run:
     - python
     - openalea.deploy
     - path.py
     - numpy
-    - mingwpy  # [win]
+    - m2w64-gcc-libs  # [win]
 
 test:
   requires:
