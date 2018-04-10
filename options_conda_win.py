@@ -2,3 +2,4 @@
 #use this file to pass custom parameter to SConstruct script
 
 compiler = 'mingw'
+CCFLAGS = '-static'
