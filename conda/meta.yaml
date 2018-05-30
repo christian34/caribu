@@ -27,7 +27,7 @@ requirements:
     - openalea.deploy
     - path.py
     - numpy
-    - mingw   [win]
+
 
 
 test:

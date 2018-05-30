@@ -32,7 +32,7 @@ prefix = env['build_prefix']
 VariantDir( prefix, '.' )
 
 env.Prepend(CPPPATH='#/src/cpp/include')
-env.AppendUnique(CPPFLAGS=["-Wl,--as-needed"])
+env.AppendUnique(CPPFLAGS=["-static"])
 
 
 
