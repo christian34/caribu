@@ -8,6 +8,8 @@ lib_env = env.Clone()
 # Import/Export symbols for windows
 if lib_env['compiler'] == 'mingw':
     lib_env.AppendUnique(CPPDEFINES=['MINGW','WIN32'])
+    LINKFLAGS=["-Wl,--as-needed"]
+    lib_env.AppendUnique(LINKFLAGS=LINKFLAGS)
 #    LINKFLAGS=["-enable-stdcall-fixup",
 #               "-enable-auto-import",
 #               "-enable-runtime-pseudo-reloc",
