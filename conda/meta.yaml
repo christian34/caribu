@@ -21,14 +21,14 @@ requirements:
     - openalea.deploy
     - openalea.sconsx
     - mingw   [win]
-    - mingw-runtime   [win]
+
   run:
     - python
     - openalea.deploy
     - path.py
     - numpy
     - mingw   [win]
-    - mingw-runtime   [win]
+
 
 test:
   requires:
