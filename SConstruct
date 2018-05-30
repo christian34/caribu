@@ -32,7 +32,8 @@ prefix = env['build_prefix']
 VariantDir( prefix, '.' )
 
 env.Prepend(CPPPATH='#/src/cpp/include')
-env.AppendUnique(CPPFLAGS=["-static"])
+if env['compiler'] == 'mingw':
+    env.AppendUnique(CPPFLAGS=["-static", "-static-libgcc", "-static-libstdc++"])
 
 
 
