@@ -597,15 +597,15 @@ class CaribuScene(object):
     def form_factors(self, d_sphere=None, disc_resolution=52, screen_size=1536, aggregate=False):
         """Estimate the form factors for the different primitives in a given neighbourhood
 
-        Args:
-            d_sphere: diametter of the sphere defining the neighbourhood. If None (default), neighboorhood is infinite
-            disc_resolution: the diameter (pixels) of the projection disc used for visibility computation.
-            Smallest visible object (1 pixel) is obtained for  8 / disc_resolution**2 sr
+        :Args:
+        - **d_sphere**: (float) the diameter (m) of the sphere defining the close neighbourhood of mixed radiosity algorithm
+            - if d_sphere = 0, direct + pure layer algorithm is used
+            - if None (default), neighboorhood is infinite (then *scene* object must has a *pattern* attribute)
+        - **disc_resolution**: the diameter (pixels) of the projection disc used for visibility computation. Smallest visible object (1 pixel) is obtained for  8 / disc_resolution**2 sr
             screen_size: size (pixel) of the projection screen
-            aggregate:
-
-        Returns:
-
+        - **aggregate**: boolean,
+            - if True, the function returns a matrix whose size is N*N, where N is the number of primitives
+            - if False, the function returns 1) a matrix whose size is N'*N', where N' is the number of triangles and 2) a list of primitive labels
         """
 
         # hack : define a minimalist light (idealy : add an option to caribu to avoid any light computation)
@@ -642,46 +642,119 @@ class CaribuScene(object):
                                       disc_resolution=disc_resolution,
                                       screen_size=screen_size)
 
-            # if len(bands) == 1:
-            #     out = {bands[0]: out}
-            # for band in bands:
-            #     output = _convert(out[band], self.conv_unit)
-            #     raw[band] = {}
-            #     aggregated[band] = {}
-            #     for k in results:
-            #         raw[band][k] = _agregate(output[k], groups, list)
-            #         if k is 'area':
-            #             aggregated[band][k] = _agregate(output[k], groups, sum)
-            #         else:
-            #             aggregated[band][k] = _agregate(izip(output[k], output['area']),
-            #                 groups, _wsum)
-            #     if self.soil is not None:
-            #         self.soil_raw[band] = {k: raw[band][k].pop('soil') for k in results}
-            #         self.soil_aggregated[band] = {k: aggregated[band][k].pop('soil') for
-            #                                       k in results}
-            #
-            # if simplify and len(bands) == 1:
-            #     raw = raw[bands[0]]
-            #     aggregated = aggregated[bands[0]]
-
-
         # aggregate faces : sum even and non even column, summmed even and non even lines
         # diagonal is 2 in this case
-            ff = out['form_factor']
-            sumed = ff[::2, ::2] + ff[::2, 1::2] + ff[1::2, ::2] + ff[1::2, 1::2]
-            ff = sumed - numpy.eye(sumed.shape[0])
+            ff_raw = out['form_factor']
+#            ff_index = numpy.repeat(out['index'],2,0)
+#            dff = pandas.DataFrame(ff_raw,columns=ff_index, index=ff_index)
+#            ff = dff.groupby(ff_index, axis=1).agg(numpy.sum).groupby(ff_index, axis=0).agg(numpy.sum)
+            sumed = ff_raw[::2, ::2] + ff_raw[::2, 1::2] + ff_raw[1::2, ::2] + ff_raw[1::2, 1::2]
+            ff = sumed - 2.*numpy.eye(sumed.shape[0]) # remove diagonal
 
+            grps = numpy.array([str(s) for s in groups]) # Primitive labals of triangles
 
-            if aggregate:  # Quit experimental
-                upper = numpy.triu(ff, 1) # keep only above diagonal
-                df = pandas.DataFrame(upper)
-                def _agglines(mat):
-                    # should be area_waighted means
-                    return mat.groupby(groups,axis=1).agg(numpy.mean).mean(axis=0)
-                up = df.groupby(groups, axis=0).apply(_agglines)
-                return up + up.transpose() + numpy.eye(up.shape[0])
+            df_a = pandas.DataFrame({'area':out['area'],'pid':groups})
+            # Sum triangles area per primitive    
+            df_atot = df_a.groupby(df_a.pid).aggregate(numpy.sum).rename(columns={'area':'sumarea'}).reset_index()
+            df_a = df_a.merge(df_atot)
+            # Calc the weighted area per triangle
+            df_a.area = df_a.area/df_a.sumarea
+            # Construct an array which must have the same shape as that of ff
+#            cf = numpy.array(df_a.area.tolist() * len(df_a.area)).reshape(len(df_a.area),len(df_a.area))
+            cf = numpy.array(numpy.repeat(df_a.area.tolist(),len(df_a.area))).reshape(len(df_a.area),len(df_a.area))
+##            cf = cf1*cf2
+            assert (cf.shape==ff.shape), 'Both arrays of weighted areas and of form factors must be identical'
+            ff_w = numpy.multiply(ff,cf) # surface-weighted factors
+
+            if aggregate:
+                dff = pandas.DataFrame(ff_w, columns=grps, index=grps)
+                dffin = dff.groupby(grps, axis=1).agg(numpy.sum).groupby(grps, axis=0).agg(numpy.sum)
+                return dffin
             else:
-                return ff, groups
+                return ff, groups #, out['form_factor']
 
-
-
+##==============================================================================
+## tempo
+###==============================================================================
+#d=.01
+#d_sphere=None
+#disc_resolution=52
+#screen_size=1536
+#aggregate=False
+#    
+#pts_1 = [(-1, 0, 0), (0, 0, 0), (0, 1, 0)]
+#pts_2 = [(1, 0, 0), (0, 0, 0), (0, 1, 0)]
+#
+#pts_a = [(0, 0, 0), (1, 0, 0), (0.5, 0.5, 0)]
+#pts_b = [(0, 0, 0), (0.5, 0.5, 0), (0, 1, 0)]
+#pts_c = [(0, 0, 0), (0, 1, 0), (-0.5, 0.5, 0)]
+#pts_d = [(0, 0, 0), (-0.5, 0.5, 0), (-1, 0, 0)]
+#
+#pts_3 = [(0, 0, d), (-1, 0, d), (0, 1, d)]
+#pts_4 = [(0, 0, d), (1, 0, d), (0, 1, d)]
+#pts_5 = [(0, 0, -d), (-1, 0, -d), (0, 1, -d)]
+#pts_6 = [(0, 0, -d), (1, 0, -d), (0, 1, -d)]
+#
+##pts_2 = [(0, 0, d), (1, 0, d), (0.5, 0.5, d)]
+##pts_3 = [(0, 0, d), (0.5, 0.5, d), (0, 1, d)]
+##pts_4 = [(0, 0, d), (-1, 0, d), (0, 1, d)]
+##pts_5 = [(0, 0, -d), (-1, 0, -d), (0, 1, -d)]
+##pts_6 = [(0, 0, -d), (1, 0, -d), (0, 1, -d)]
+#
+#pyscene = {'mid_prim': [pts_1,pts_2], 'upper_prim': [pts_3,pts_4], 'lower_prim': [pts_5,pts_6]}
+#domain = (-.1, 0, .1, .1)
+#cscene = CaribuScene(pyscene, pattern=domain)
+#
+#lights = [cscene.default_light]
+#
+#if d_sphere is not None:
+#    if cscene.pattern is None:
+#        raise ValueError(
+#            'Nested Form factor computation needs a pattern to be defined')
+#    d_sphere /= cscene.conv_unit
+#    if d_sphere <= 0:
+#        d_sphere = None
+#
+#if cscene.scene is not None:
+#    triangles = reduce(lambda x, y: x + y, cscene.scene.values())
+#    groups = [[pid] * len(cscene.scene[pid]) for pid in cscene.scene]
+#    groups = reduce(lambda x, y: x + y, groups)
+#    # if cscene.soil is not None:
+#    #     triangles += cscene.soil
+#    #     groups = groups + ['soil'] * len(cscene.soil)
+#
+#    materials = [(1,0)] * len(triangles)
+#
+#    if d_sphere is None:
+#        out = radiosity(triangles, materials, lights=lights, form_factor=True, disc_resolution=disc_resolution, screen_size=screen_size)
+#    else:
+#        z = (pt[2] for tri in triangles for pt in tri)
+#        height = 1.01 * max(z)
+#        out = mixed_radiosity(triangles, materials, lights=lights,
+#                              domain=cscene.pattern,
+#                              soil_reflectance=0.1,
+#                              diameter=d_sphere, layers=1, height=height,
+#                              form_factor=True,
+#                              disc_resolution=disc_resolution,
+#                              screen_size=screen_size)
+#ff_raw = out['form_factor']
+##            ff_index = numpy.repeat(out['index'],2,0)
+##            dff = pandas.DataFrame(ff_raw,columns=ff_index, index=ff_index)
+##            ff = dff.groupby(ff_index, axis=1).agg(numpy.sum).groupby(ff_index, axis=0).agg(numpy.sum)
+#sumed = ff_raw[::2, ::2] + ff_raw[::2, 1::2] + ff_raw[1::2, ::2] + ff_raw[1::2, 1::2]
+#
+##   Remove diagonal values
+#ff = sumed - 2.*numpy.eye(sumed.shape[0])
+#
+#grps = numpy.array([str(s) for s in groups]) # Primitive labals of triangles
+#
+#df_a = pandas.DataFrame({'area':out['area'],'pid':groups})
+#df_atot = df_a.groupby(df_a.pid).aggregate(numpy.sum).rename(columns={'area':'sumarea'}).reset_index()
+#df_a = df_a.merge(df_atot)
+#df_a.area = df_a.area/df_a.sumarea
+#cf = numpy.array(numpy.repeat(df_a.area.tolist(),len(df_a.area))).reshape(len(df_a.area),len(df_a.area))
+#assert (cf.shape==ff.shape), 'Both arrays of weighted areas and of form factors must be identical'
+#ff_w = numpy.multiply(ff,cf) # surface-weighted factors
+#dff = pandas.DataFrame(ff_w, columns=grps, index=grps)
+#dffin = dff.groupby(grps, axis=1).agg(numpy.sum).groupby(grps, axis=0).agg(numpy.sum)
+#dffin
