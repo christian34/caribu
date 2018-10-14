@@ -21,6 +21,7 @@ public:
   virtual  Vecteur normal() {return prim->normal();}
   Point centre() {return prim->centre();}
   double surface() {return prim->surface();}
+  double hauteur() {return prim->hauteur();}
   double name() {return prim->name();}
   Vecteur azi0(){return prim->azi();}//azimuth zero
   virtual bool isopaque()=0;

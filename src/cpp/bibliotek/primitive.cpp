@@ -71,7 +71,7 @@ Polygone::Polygone(string ligne,double name,
   //Ferr <<__FILE__<<" : "<<__LINE__<<"\n" ;
   istringstream isTmp (ligne);
 
-  // Note: apprendre à vider TOUTE une istringstream d'1 coup
+  // Note: apprendre ï¿½ vider TOUTE une istringstream d'1 coup
 
   char *tmp1 = new char[LONG_LIGNE_CAN],
     *tmp2 = new char[LONG_LIGNE_CAN] ;
@@ -561,8 +561,40 @@ double Polygone::surface(){
     break;
   }//switch
   return(x);   
- }// Polygone::surface() 
+ }// Polygone::surface()
 
+//-***************************   Polygone::hauteur()   ************************
+double Polygone::hauteur(){
+  double x, base, s, ab, ac, bc;
+  Vecteur AB, AC, BC;
+  // Ferr<<"Polygone::surface()";qui(); //show();
+  switch(nb_sommets){
+  case 1: //polygone de faussaire
+  case 2:
+    Ferr<<"Polygone[surface] Irrtum nb_sommet = "<<nb_sommets<< '\n';
+    exit(26);
+    break;
+  case 3: //triangle
+  AB.formation_vecteur(sommet[0],sommet[1]);
+  AC.formation_vecteur(sommet[0],sommet[2]);
+  BC.formation_vecteur(sommet[1], sommet[2]);
+  ab = AB.norme();
+  ac = AC.norme();
+  bc = BC.norme();
+  s = AB.norme() * AC.norme();
+  base = (ab >= ac) && (ab >= bc) ? ab : (ac >= bc ? ac : bc);
+  AB.normalise();
+  AC.normalise();
+  x=Macos(AB.prod_scalaire(AC));
+  s = ab * ac * sin(x)/2.0;
+  x = 2 * s / base;
+    break;
+  default:
+    x=-1;
+    break;
+  }//switch
+  return(x);
+ }
 
 //-***************************   Triangle::surface()   ************************
 double Triangle::surface(){
@@ -578,6 +610,26 @@ double Triangle::surface(){
   return(x);   
 }// Triangle::surface()
 
+
+//-***************************   Triangle::hauteur()   ************************
+double Triangle::hauteur(){
+  double x;
+  double s;
+  double base, ab, ac, bc;
+  Vecteur AB(sommet[0],sommet[1]), AC(sommet[0],sommet[2]), BC(sommet[1], sommet[2]);
+  ab = AB.norme();
+  ac = AC.norme();
+  bc = BC.norme();
+  s = AB.norme() * AC.norme();
+  base = (ab >= ac) && (ab >= bc) ? ab : (ac >= bc ? ac : bc);
+  AB.normalise();
+  AC.normalise();
+  x=Macos(AB.prod_scalaire(AC));
+  s = ab * ac * sin(x)/2.0;
+  x = 2 * s / base;
+  return(x);
+}// Triangle::surface()
+
 //-***************************  Polygone::distance_point() ************************
 #ifdef _TEST
 extern char verbeux;
@@ -590,7 +642,7 @@ static   time_t tpsD,tpsF,tps1=0,tps2=0;
 
 double Polygone::distance2_point(Point &C) {
   /* Calcule le carre de la distance d'un point a un polygone convexe T en 2 etapes :
-     - I, intesection du plan de T avec la droite (C,n), où n est la normale de T
+     - I, intesection du plan de T avec la droite (C,n), oï¿½ n est la normale de T
      (cf. intersect())
      - Determination de I', point minimisant la distance (T,I) dans le plan  
      */

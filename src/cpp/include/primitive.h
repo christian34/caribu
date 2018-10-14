@@ -38,6 +38,7 @@ public:
   virtual void show(const char* msg="",ostream & out=cout)=0;
   virtual double intersect(Param_Inter& parag,Point *I) = 0;
   virtual double surface ()=0;
+  virtual double hauteur ()=0;
   virtual Point centre()=0;
   virtual double distance2_point(Point &)=0;// carre de la distance du point P a la primitive
   virtual bool appart_sphere(Point & O, double R2)=0;
@@ -97,6 +98,7 @@ public:
   // { out <<"Polygone[show] "<<msg<<endl;}
   double intersect(Param_Inter& parag,Point* I);
   double surface ();
+  double hauteur();
   Point centre(){return isob;}
   Vecteur azi();
   double distance2_point(Point &); // carre de la distance du point P au polygone (convexe)
@@ -123,6 +125,7 @@ class Triangle : public Polygone
            out << "          " <<sommet[2][0]<<" "<<sommet[2][1]<<" "<<sommet[2][2]<<endl;
 	 }
   double surface ();
+  double hauteur ();
 };
 
 #endif

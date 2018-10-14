@@ -485,7 +485,7 @@ int main(int argc,char **argv){
 	// Version repreannt la liste initiale de triangle du .can pr PyCaribu
 	ft0=fopen("Etri.vec0","w");    
 	fprintf(ft0,"# canestrad: can=%s F8=%s opt=%s light=%s : denv=%.2f direct=%d \n",maqname,name8,optname,lightname,denv,(int)ordre1 );
-	fprintf(ft0,"# No Label1 Area Eabs(E/s/m2) Ei(sup) Ei(inf) (Ex=surfacic density of energy <nrj/s/m2>)\n");
+	fprintf(ft0,"# No Label1 Area Height  Eabs(E/s/m2) Ei(sup) Ei(inf) (Ex=surfacic density of energy <nrj/s/m2>)\n");
       
       }
       else{//by shared memory
@@ -542,7 +542,7 @@ int main(int argc,char **argv){
 	//Geston de la sortie Etrivec0 identique a liste de triangle en entree - MC09
 	while(scene.Ldiff0.contenu()>=0 ){
 	  if(scene.Ldiff0.finito()) break;
-	  fprintf(ft0,"%d %.0f 0 NaN NaN NaN\n",Nt0,scene.Ldiff0.contenu());
+	  fprintf(ft0,"%d %.0f 0 0 NaN NaN NaN\n",Nt0,scene.Ldiff0.contenu());
 	  Nt0++;
 	  // printf("dbg 2, Nt0=%d, Ldiff0()=%d\n", Nt0, scene.Ldiff0.contenu());
 	  scene.Ldiff0.suivant();
@@ -580,7 +580,7 @@ int main(int argc,char **argv){
 	      fprintf(fa,"%g\n",Eabs[ia]*surf);
 	      fprintf(ft,"%.0f %f  %f  %f %f\n",nom, surf, Eabs[ia], Ei[i],-1.);
 	      //liste compatible pycaribu - MC09  
-	      fprintf(ft0,"%d %.0f %f  %f  %f %f\n",Nt0,nom, surf, Eabs[ia], Ei[i],-1.);
+	      fprintf(ft0,"%d %.0f %f  %f  %f %f %f\n",Nt0,nom, surf, diff->hauteur(),Eabs[ia], Ei[i],-1.);
 	      Nt0++;
 	      scene.Ldiff0.suivant(); 
 	    } else{
@@ -631,7 +631,7 @@ int main(int argc,char **argv){
 	      fprintf(fa,"%g\n",Eabs[ia]*surf);
 	      fprintf(ft,"%.0f %f  %f  %f %f\n",nom, surf, Eabs[ia], Ei[i-1], Ei[i]);
 	      //liste compatible pycaribu - MC09  
-	      fprintf(ft0,"%d %.0f %f  %f  %f %f\n",Nt0,nom, surf,  Eabs[ia], Ei[i-1], Ei[i]);
+	      fprintf(ft0,"%d %.0f %f  %f %f %f %f\n",Nt0,nom, surf,  diff->hauteur(), Eabs[ia], Ei[i-1], Ei[i]);
 	      Nt0++;
 	      scene.Ldiff0.suivant();
 	    } else{
@@ -676,7 +676,7 @@ int main(int argc,char **argv){
       //vidage de liste au cas ou - MC09
       if(!scene.Ldiff0.finito())
 	while(scene.Ldiff0.contenu()>=0 ){
-	  fprintf(ft0,"%d %.0f 0 NaN NaN NaN\n",Nt0,scene.Ldiff0.contenu());
+	  fprintf(ft0,"%d %.0f 0 0 NaN NaN NaN\n",Nt0,scene.Ldiff0.contenu());
 	  Nt0++;
 	  //printf("dbg 6, Nt0=%d, Ldiff0()=%d\n", Nt0, scene.Ldiff0.contenu());
 	  scene.Ldiff0.suivant();
