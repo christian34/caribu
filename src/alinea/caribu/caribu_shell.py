@@ -379,6 +379,7 @@ class Caribu(object):
         idx = []
         label = []
         area = []
+        height = []
         Eabs = []
         Ei_sup = []
         Ei_inf = []
@@ -392,12 +393,13 @@ class Caribu(object):
                 lab = (12 - len(lab)) * '0' + lab
             label.append(lab)
             area.append(floats[2])
-            Eabs.append(floats[3])
-            Ei_sup.append(floats[4])
-            Ei_inf.append(floats[5])
+            height.append(floats[3])
+            Eabs.append(floats[4])
+            Ei_sup.append(floats[5])
+            Ei_inf.append(floats[6])
 
         f.close()
-        data = {'index': idx, 'label': label, 'area': area, 'Eabs': Eabs, 'Ei_sup': Ei_sup, 'Ei_inf': Ei_inf}
+        data = {'index': idx, 'label': label, 'area': area, 'height': height, 'Eabs': Eabs, 'Ei_sup': Ei_sup, 'Ei_inf': Ei_inf}
         self.nrj[band_name] = {'doc': doc, 'data': data}
 
     def store_sensor(self, filename, band_name):
