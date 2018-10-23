@@ -491,6 +491,7 @@ class CaribuScene(object):
              results for each primitive
             result_name are :
                       - area (float): the individual areas (m2)
+                      - height (float): the height of triangles
                       - Eabs (float): the surfacic density of energy absorbed (m-2)
                       - Ei (float): the surfacic density of energy incoming  (m-2)
                       additionally, if split_face is True:
@@ -502,7 +503,7 @@ class CaribuScene(object):
 
         raw, aggregated = {}, {}
         self.soil_raw, self.soil_aggregated = {}, {}
-        results = ['Eabs', 'Ei', 'area']
+        results = ['Eabs', 'Ei', 'area','height']
         if split_face:
             results.extend(['Ei_inf', 'Ei_sup'])
 
