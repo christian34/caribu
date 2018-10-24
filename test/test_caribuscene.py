@@ -112,6 +112,9 @@ if run_test:
         cs = CaribuScene(scene=s)
         npix = cs.auto_screen(0.01)
         assert npix == 173
+        cs = CaribuScene(scene=s, scene_unit='dam')
+        npix = cs.auto_screen(0.01)
+        assert npix == 1732
         points = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
         triangles = [points]
         pyscene = {'t1': triangles}
@@ -209,8 +212,33 @@ if run_test:
         cscene = CaribuScene(pyscene, pattern=domain, scene_unit='cm')
         out, agg = cscene.run(direct=True, infinite=False, simplify=True)
         assert_almost_equal(sum(out['area']['lower']), 1, 0)
+        assert out['height']['lower'][0] < 1
         assert_almost_equal(sum(out['Ei']['upper']), 1, 0)
 
+    def test_resolution():
+        pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+        pts_2 = [(0, 0, 1e-5), (1, 0, 1e-5), (0, 0.01, 1e-5)]
+        pts_3 = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
+        pyscene = {'lower': [pts_1, pts_3], 'upper': [pts_2]}
+        cscene = CaribuScene(pyscene)
+        out, agg = cscene.run(direct=True, infinite=False, simplify=True, screen_resolution=1e-3)
+        assert_almost_equal(agg['confidence']['lower'], 1)
+        assert_almost_equal(agg['confidence']['upper'], 1)
+        assert_almost_equal(agg['Ei']['lower'], 0.99, 2)
+        assert_almost_equal(agg['Ei']['upper'], 1, 0)
+        out, agg = cscene.run(direct=True, infinite=False, simplify=True, screen_resolution=0.05)
+        assert_almost_equal(agg['confidence']['lower'], 1)
+        assert_almost_equal(agg['confidence']['upper'], 0)
+        assert_almost_equal(agg['Ei']['lower'], 0.9, 1)
+        assert_almost_equal(agg['Ei']['upper'], 0, 0) # 100% error
+        # make triangle ten time bigger
+        cscene = CaribuScene(pyscene, scene_unit='dam')
+        # resolution still in m
+        out, agg = cscene.run(direct=True, infinite=False, simplify=True, screen_resolution=0.05)
+        assert_almost_equal(agg['confidence']['lower'], 1)
+        assert_almost_equal(agg['confidence']['upper'], 1)
+        assert_almost_equal(agg['Ei']['lower'], 0.99, 2)
+        assert_almost_equal(agg['Ei']['upper'], 1, 0)
 
     def test_run_monochrome():
         pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]

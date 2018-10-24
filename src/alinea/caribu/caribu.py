@@ -232,6 +232,7 @@ def raycasting(triangles, materials, lights=(default_light,), domain=None,
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
+    out['meta'] = {'scene_bbox': algo.bbox_run, 'screen_size': algo.screen_size_run}
     if sensors is not None:
         out['sensors'] = algo.measures['band0']
 
@@ -352,6 +353,7 @@ def radiosity(triangles, materials, lights=(default_light,), screen_size=1536,
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
+    out['meta'] = {'scene_bbox': algo.bbox_run, 'screen_size': algo.screen_size_run}
     if sensors is not None:
         out['sensors'] = algo.measures['band0']
 
@@ -419,6 +421,7 @@ def x_radiosity(triangles, x_materials, lights=(default_light,),
     out = {k: v['data'] for k, v in caribu.nrj.iteritems()}
     for band in out:
         out[band]['Ei'] = get_incident(out[band]['Eabs'], x_materials[band])
+        out[band]['meta'] = {'scene_bbox': caribu.bbox_run, 'screen_size': caribu.screen_size_run}
         if sensors is not None:
             out[band]['sensors'] = caribu.measures[band]
 
@@ -494,6 +497,7 @@ def mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
     algo.run()
     out = algo.nrj['band0']['data']
     out['Ei'] = get_incident(out['Eabs'], materials)
+    out['meta'] = {'scene_bbox': algo.bbox_run, 'screen_size': algo.screen_size_run}
     if sensors is not None:
         out['sensors'] = algo.measures['band0']
 
@@ -559,5 +563,6 @@ def x_mixed_radiosity(triangles, materials, lights, domain, soil_reflectance,
     out = {k: v['data'] for k, v in caribu.nrj.iteritems()}
     for band in out:
         out[band]['Ei'] = get_incident(out[band]['Eabs'], materials[band])
+        out[band]['meta'] = {'scene_bbox': caribu.bbox_run, 'screen_size': caribu.screen_size_run}
 
     return out

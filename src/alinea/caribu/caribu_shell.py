@@ -414,6 +414,12 @@ class Caribu(object):
                 area.append(floats[3])
         self.measures[band_name] = {'sensor_id': id, 'Ei0': eio, 'Ei': ei, 'area': area}
 
+    def store_bbox(self, filename):
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+            self.bbox_run = map(float, lines[2].split())
+            self.screen_size_run = int(lines[3])
+
     def run(self):
         """
         The main Caribu program.
@@ -557,12 +563,17 @@ class Caribu(object):
 
         ficres = d / 'Etri.vec0'
         ficsens = d / 'solem.dat'
+        ficbox = d / 'bbox.txt'
+
         if ficres.exists():
             self.store_result(ficres, str(optname))
 
             if self.sensor is not None:
                 if ficsens.exists():
                     self.store_sensor(ficsens, str(optname))
+
+            if ficbox.exists():
+                self.store_bbox(ficbox)
 
             if self.resdir is not None:
                 # copy result files

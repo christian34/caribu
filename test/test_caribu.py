@@ -40,22 +40,26 @@ def test_other_algos():
 
     res = raycasting(triangles, mats, sensors=sensors)
     assert 'sensors' in res
+    assert 'meta' in res
     assert 'Ei' in res['sensors']
 
     res = x_raycasting(triangles, x_mats, sensors=sensors)
     assert 'PAR' in res
     assert 'NIR' in res
     assert 'sensors' in res['PAR']
+    assert 'meta' in res['PAR']
     assert 'Ei' in res['PAR']['sensors']
 
     res = radiosity(triangles, mats, sensors=sensors)
     assert 'sensors' in res
+    assert 'meta' in res
     assert 'Ei' in res['sensors']
 
     res = x_radiosity(triangles, x_mats, sensors=sensors)
     assert 'PAR' in res
     assert 'NIR' in res
     assert 'sensors' in res['PAR']
+    assert 'meta' in res['PAR']
     assert 'Ei' in res['PAR']['sensors']
 
     res = mixed_radiosity(triangles, mats, lights=lights, domain=domain,
@@ -69,6 +73,7 @@ def test_other_algos():
                             height=height)
     assert 'PAR' in res
     assert 'NIR' in res
+    assert 'meta' in res['PAR']
     assert 'Eabs' in res['PAR']
 
 def test_raycasting_exception():

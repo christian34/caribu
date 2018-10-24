@@ -51,6 +51,7 @@ def _convert(output, conv_unit):
     else:
         meter_square = conv_unit ** 2
         output['area'] = [area * meter_square for area in output['area']]
+        output['height'] = [height * conv_unit for height in output['height']]
         for k in ['Eabs', 'Ei', 'Ei_sup', 'Ei_inf']:
             output[k] = [nrj / meter_square for nrj in output[k]]
         return output
@@ -310,12 +311,35 @@ class CaribuScene(object):
                                                    self.scene.values()))))
         return (x.min(), y.min(), z.min()), (x.max(), y.max(), z.max())
 
-    def auto_screen(self, screen_resolution):
-        pix = screen_resolution * self.conv_unit
+    def diagonal(self):
+        """
+
+        Returns
+        -------
+        The length(meter) of the scene bounding-box diagonal
+        """
+
         (xmin, ymin, zmin), (xmax, ymax, zmax) = self.bbox()
         ldiag = numpy.sqrt(
             (xmax - xmin) ** 2 + (ymax - ymin) ** 2 + (zmax - zmin) ** 2)
-        return max(2, int(ldiag / pix))
+        return ldiag * self.conv_unit
+
+
+
+    def auto_screen(self, screen_resolution):
+        """
+
+        Parameters
+        ----------
+        screen_resolution: (float) real world size (meter) of a pixel on the
+             projection screen.
+
+        Returns
+        -------
+
+        """
+        ldiag = self.diagonal()
+        return max(2, int(ldiag / screen_resolution))
 
     def plot(self, a_property=None, minval=None, maxval=None, gamma=None, display=True):
         """
@@ -491,7 +515,7 @@ class CaribuScene(object):
              results for each primitive
             result_name are :
                       - area (float): the individual areas (m2)
-                      - height (float): the height of triangles
+                      - height (float): the height of triangles (m)
                       - Eabs (float): the surfacic density of energy absorbed (m-2)
                       - Ei (float): the surfacic density of energy incoming  (m-2)
                       additionally, if split_face is True:
@@ -503,7 +527,8 @@ class CaribuScene(object):
 
         raw, aggregated = {}, {}
         self.soil_raw, self.soil_aggregated = {}, {}
-        results = ['Eabs', 'Ei', 'area','height']
+        self.meta={}
+        results = ['Eabs', 'Ei', 'area','height', 'confidence']
         if split_face:
             results.extend(['Ei_inf', 'Ei_sup'])
 
@@ -587,6 +612,13 @@ class CaribuScene(object):
             if len(bands) == 1:
                 out = {bands[0]: out}
             for band in bands:
+                self.meta = out[band].pop('meta')
+                # assert confidence(confidence=0 for triangles with height < pixel length, 1 otherwise)
+                xmin, ymin, zmin, xmax, ymax, zmax = self.meta['scene_bbox'] # in scene unit
+                resolution = self.meta['screen_size']
+                ldiag = numpy.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2 + (zmax - zmin) ** 2)
+                pixl = ldiag / resolution
+                out[band]['confidence'] = [0 if h < pixl else 1 for h in out[band]['height']]
                 output = _convert(out[band], self.conv_unit)
                 raw[band] = {}
                 aggregated[band] = {}

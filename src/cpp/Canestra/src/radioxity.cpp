@@ -412,6 +412,15 @@ int main(int argc,char **argv){
   
     //Rendu - Traitement des resultats
     genres();
+    // some usefull info to check screen resolution issues after run (CF 2018)
+    if(byfile){
+    FILE *fbox=NULL;
+    fbox=fopen("bbox.txt", "w");
+	fprintf(fbox, "# scene bbox xmin, ymin, zmin, xmax, ymax, zmax\n# projection screen size (pixel)\n");
+	fprintf(fbox, "%g %g %g %g %g %g\n", bornemin[0], bornemin[1], bornemin[2], bornemax[0], bornemax[1], bornemax[2]);
+	fprintf(fbox, "%d\n", scene.Timg);
+	fclose(fbox);
+    }
     // Gestion des fichiers persistants
     if(bMemoriseMatrix==false) {
       EffaceMatrices();
@@ -479,7 +488,7 @@ int main(int argc,char **argv){
       if(byfile) {//by file
 	fa=fopen("Eabs.vec","w");
 	fi=fopen("Einc.vec","w");
-	ft=fopen("Etri.vec","w");    
+	ft=fopen("Etri.vec","w");
 	fprintf(ft,"# canestrad: can=%s F8=%s opt=%s light=%s : denv=%.2f direct=%d \n",maqname,name8,optname,lightname,denv,(int)ordre1 );
 	fprintf(ft,"# label1 Area Eabs(E/s/m2) Ei(sup) Ei(inf) (Ex=surfacic density of energy <nrj/s/m2>)\n");
 	// Version repreannt la liste initiale de triangle du .can pr PyCaribu
