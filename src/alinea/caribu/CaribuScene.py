@@ -585,7 +585,7 @@ class CaribuScene(object):
 
             if screen_resolution is not None:
                 screen_size = self.auto_screen(screen_resolution)
-                print 'adjusted projection screen size: ' + str(screen_size)
+                # print 'adjusted projection screen size: ' + str(screen_size)
 
             if not direct and infinite:  # mixed radiosity
                 out = algos['mixed_radiosity'](triangles, materials,
@@ -666,3 +666,26 @@ class CaribuScene(object):
         self.scene = cscene
 
         return self
+
+    def run_statistics(self, raw, show=True):
+        """Compute some statistics about the scene and its consistency with projection screen resolution during last
+        run"""
+        if len(self.meta) == 0:
+            raise ValueError('run statistics can only be computed after having called a run')
+        assert 'confidence' in raw, "input arg is a dict of result (for one band)"
+        xmin, ymin, zmin, xmax, ymax, zmax = self.meta['scene_bbox']  # in scene unit
+        resolution = self.meta['screen_size']
+        ldiag = numpy.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2 + (zmax - zmin) ** 2)
+        pixl = ldiag / resolution
+        pixel_per_cm = .01 / pixl
+        conf = list(chain.from_iterable(raw['confidence'].values()))
+        confidence = numpy.mean(conf) * 100
+        area = list(chain.from_iterable(raw['area'].values()))
+        pixel_per_triangle = numpy.mean(area) / pixl**2
+        if show:
+            print("screen_size (pixels): %d" % resolution)
+            print("scene size (m) %g" % ldiag)
+            print("pixel/cm: %.2f" % pixel_per_cm)
+            print('mean # of pixel per primitive %g (%g Mpix)' % (pixel_per_triangle, pixel_per_triangle / 1e6))
+            print('confidence (%% of triangle whose height is superior to one pixel) %.2f%%' % confidence)
+        return resolution, ldiag, pixel_per_cm, pixel_per_triangle, confidence

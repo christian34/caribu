@@ -240,6 +240,20 @@ if run_test:
         assert_almost_equal(agg['Ei']['lower'], 0.99, 2)
         assert_almost_equal(agg['Ei']['upper'], 1, 0)
 
+    def test_run_statistics():
+        pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
+        pts_2 = [(0, 0, 1e-5), (1, 0, 1e-5), (0, 0.01, 1e-5)]
+        pts_3 = [(1, 0, 0), (1, 1, 0), (0, 1, 0)]
+        pyscene = {'lower': [pts_1, pts_3], 'upper': [pts_2]}
+        cscene = CaribuScene(pyscene)
+        out, agg = cscene.run(direct=True, infinite=False, simplify=True, screen_resolution=0.05)
+        r,l,pcm,ppt,conf = cscene.run_statistics(out, show=False)
+        assert_almost_equal(r, 28)
+        assert_almost_equal(l, 1.41, 2)
+        assert_almost_equal(pcm, 0.2, 1)
+        assert_almost_equal(ppt, 131, 0)
+        assert_almost_equal(conf, 67, 0)
+
     def test_run_monochrome():
         pts_1 = [(0, 0, 0), (1, 0, 0), (0, 1, 0)]
         pts_2 = [(0, 0, 1e-5), (1, 0, 1e-5), (0, 1, 1e-5)]
