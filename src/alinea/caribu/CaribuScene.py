@@ -675,7 +675,7 @@ class CaribuScene(object):
         assert 'confidence' in raw, "input arg is a dict of result (for one band)"
         xmin, ymin, zmin, xmax, ymax, zmax = self.meta['scene_bbox']  # in scene unit
         resolution = self.meta['screen_size']
-        ldiag = numpy.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2 + (zmax - zmin) ** 2)
+        ldiag = numpy.sqrt((xmax - xmin) ** 2 + (ymax - ymin) ** 2 + (zmax - zmin) ** 2) * self.conv_unit
         pixl = ldiag / resolution
         pixel_per_cm = .01 / pixl
         conf = list(chain.from_iterable(raw['confidence'].values()))
